@@ -60,7 +60,7 @@ export class SeedService implements OnModuleInit {
         role: adminRole,
         roleId: adminRole.id,
       });
-      console.log('✅ Usuario admin@email.com / admin123 creado');
+      console.log('✅ Usuario admin creado');
     }
 
     // 3. Crear Categorías

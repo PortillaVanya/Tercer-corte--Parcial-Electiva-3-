@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import morgan from 'morgan';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
@@ -14,8 +15,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  app.use(helmet());
+
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
     credentials: true,
   });
 
@@ -33,17 +36,19 @@ async function bootstrap() {
   // Habilitar ClassSerializerInterceptor para excluir datos sensibles
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  const config = new DocumentBuilder()
-    .setTitle('API Backend2026')
-    .setDescription(
-      'Documentación Swagger para estudiantes (productos, categorías, inventario)',
-    )
-    .setVersion('1.0')
-    .addTag('productos')
-    .build();
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('API Backend2026')
+      .setDescription(
+        'Documentación Swagger para estudiantes (productos, categorías, inventario)',
+      )
+      .setVersion('1.0')
+      .addTag('productos')
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api-docs', app, document);
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }

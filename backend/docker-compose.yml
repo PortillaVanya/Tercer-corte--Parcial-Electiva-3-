@@ -4,9 +4,8 @@ services:
     container_name: mysql_inventory
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: tienda_virtual
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${DB_DATABASE:-tienda_virtual}
     ports:
       - "3308:3306"
     volumes:
@@ -22,12 +21,14 @@ services:
       - "8080:8080"
     environment:
       PORT: 8080
+      NODE_ENV: ${NODE_ENV:-development}
       DB_HOST: db
       DB_PORT: 3306
-      DB_USERNAME: root
-      DB_PASSWORD: root
-      DB_DATABASE: tienda_virtual
-      JWT_SECRET: clave_secreta_para_desarrollo_123
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_DATABASE: ${DB_DATABASE:-tienda_virtual}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
     depends_on:
       - db
 

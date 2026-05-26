@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductosService } from './productos/productos.service';
@@ -34,6 +36,12 @@ import { InventarioLogEntity } from './inventario/entities/inventario-log.entity
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 20,
+      },
+    ]),
     ProductosModule,
     UsuariosModule,
     InventarioModule,
@@ -44,6 +52,14 @@ import { InventarioLogEntity } from './inventario/entities/inventario-log.entity
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ProductosService, SeedService],
+  providers: [
+    AppService,
+    ProductosService,
+    SeedService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
