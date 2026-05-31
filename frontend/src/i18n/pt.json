@@ -1,0 +1,34 @@
+{
+  "common": {
+    "dashboard": "Painel",
+    "products": "Produtos",
+    "categories": "Categorias",
+    "history": "Histórico",
+    "settings": "Configurações",
+    "logout": "Sair"
+  },
+  "dashboard": {
+    "title": "Saúde do Inventário",
+    "subtitle": "Painel de Inteligência de Negócios para Admin",
+    "stockCritical": "Estoque Crítico",
+    "outOfStock": "Esgotado",
+    "totalValue": "Valor Total do Estoque",
+    "activeCategories": "Categorias Ativas"
+  },
+  "products": {
+    "title": "Gestão de Produtos",
+    "add": "Adicionar Produto",
+    "edit": "Editar Produto",
+    "delete": "Excluir Produto",
+    "name": "Nome",
+    "price": "Preço",
+    "stock": "Estoque",
+    "category": "Categoria"
+  },
+  "notifications": {
+    "stockCritical": "Estoque Crítico",
+    "stockLow": "Estoque Baixo",
+    "newSale": "Nova Venda",
+    "inventoryUpdate": "Atualização de Inventário"
+  }
+}

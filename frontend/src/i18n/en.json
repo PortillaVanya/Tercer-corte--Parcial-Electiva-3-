@@ -1,0 +1,34 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "categories": "Categories",
+    "history": "History",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Inventory Health",
+    "subtitle": "Business Intelligence Panel for Admin",
+    "stockCritical": "Critical Stock",
+    "outOfStock": "Out of Stock",
+    "totalValue": "Total Stock Value",
+    "activeCategories": "Active Categories"
+  },
+  "products": {
+    "title": "Product Management",
+    "add": "Add Product",
+    "edit": "Edit Product",
+    "delete": "Delete Product",
+    "name": "Name",
+    "price": "Price",
+    "stock": "Stock",
+    "category": "Category"
+  },
+  "notifications": {
+    "stockCritical": "Critical Stock",
+    "stockLow": "Low Stock",
+    "newSale": "New Sale",
+    "inventoryUpdate": "Inventory Update"
+  }
+}
