@@ -37,10 +37,12 @@ Sistema de gestión de inventario full-stack con autenticación JWT, catálogo d
 | **Dashboard en Tiempo Real** | Actualizaciones en tiempo real con WebSocket y gráficos de actividad |
 | **Notificaciones por Email** | Envío automático de emails para ventas, cambios de inventario y alertas |
 | **Panel de Notificaciones** | Recepción en tiempo real de notificaciones por WebSocket |
-| **Configuración Docker** | Docker Compose con MySQL, Redis, Backend, Frontend y Nginx |
-| **Configuración HTTPS/SSL** | Nginx como proxy inverso con soporte SSL y WebSocket |
-| **Scripts de Backup** | Scripts automatizados para backup y restauración de base de datos |
-| **CI/CD GitHub Actions** | Pipeline automatizado para despliegue en producción |
+| **Configuración Docker** | Docker Compose con PostgreSQL, Backend, Frontend y Nginx |
+| **Dockerfiles Seguros** | Multi-stage builds con node:24-alpine y usuario non-root |
+| **CORS Seguro** | Configuración con .filter(Boolean) y lectura desde variable de entorno |
+| **Endpoint /health** | Endpoint de telemetría colocado antes de middlewares de seguridad |
+| **CI/CD GitHub Actions** | Pipeline automatizado para linting, tests y build |
+| **Base de Datos Flexible** | Soporte para SQLite (desarrollo) y PostgreSQL (Docker/producción) |
 
 ---
 
@@ -186,87 +188,117 @@ El SGI implementa un conjunto completo de medidas de seguridad profesionales par
 
 ---
 
+## ⚙️ Requisitos Técnicos Implementados
+
+### 1. Docker y Docker Compose (Entorno Local Full-Stack)
+- **Dockerfiles Seguros**:
+  - Imagen Base Minimalista: `node:24-alpine` para frontend y backend
+  - Principio de Menor Privilegio: `USER node` en contenedores
+  - Instalación Limpia: Multi-stage builds y `npm ci --omit=dev`
+- **Docker Compose**:
+  - Orquestación con PostgreSQL, Backend y Frontend
+  - Variables de entorno desde `.env`
+  - Healthcheck para base de datos
+
+### 2. Pipelines de CI/CD (GitHub Actions)
+- **Workflow de Integración Continua**:
+  - Ejecuta `npm ci` (limpia), linting, tests y build para frontend y backend
+  - Trigger en push/pr a `main`
+- **Despliegue Continuo**:
+  - Webhook para actualización automática en producción (configurable)
+
+### 3. Blindaje de Red y Monitoreo Operativo
+- **CORS Seguro**:
+  - Lectura desde variable `CORS_ORIGIN`
+  - Limpieza con `.split(',').map().trim().filter(Boolean)`
+- **Estrategia Keep-Alive**:
+  - Endpoint `/health` antes de middlewares de seguridad
+  - Devuelve estado, timestamp y uptime
+- **Base de Datos Flexible**:
+  - SQLite para desarrollo local
+  - PostgreSQL para Docker y producción
+
+---
+
 ## 🛠️ Instalación y Ejecución
 
 ### Prerrequisitos
-- **Docker Desktop** instalado y en ejecución
-- **Node.js 20+** y **npm**
+- **Docker Desktop** (para ejecución con Docker)
+- **Node.js 24+** y **npm** (para desarrollo local)
 - **Git** (para clonar el repositorio)
 
 ### Configuración de Variables de Entorno
 
-**Backend:**
+**Proyecto completo (raíz):**
 ```bash
-cd backend
-cp .env.production.example .env
-# Editar .env con tus credenciales reales
-```
-
-Variables críticas a configurar:
-- `JWT_SECRET`: String seguro de 32+ caracteres (genera con: `openssl rand -base64 32`)
-- `MYSQL_ROOT_PASSWORD`: Contraseña segura para MySQL
-- `DB_PASSWORD`: Contraseña segura para la base de datos
-- `SMTP_USER` y `SMTP_PASS`: Credenciales de Gmail (usa App Password)
-- `CORS_ORIGIN`: Tu dominio real en producción (ej: `https://tu-dominio.com`)
-
-**Frontend:**
-```bash
-cd frontend
 cp .env.example .env
-# Editar .env con la URL de tu API
+# Editar .env con tus credenciales
 ```
 
-Para desarrollo local:
-```env
-VITE_API_URL=http://localhost:8080
-```
-
-Para producción:
-```env
-VITE_API_URL=https://tu-dominio.com
-```
+Variables importantes:
+- `JWT_SECRET`: String seguro de 32+ caracteres
+- `DB_TYPE`: `sqlite` (desarrollo) o `postgres` (Docker)
+- `DB_USER`, `DB_PASSWORD`, `DB_NAME`: Para PostgreSQL
+- `CORS_ORIGIN`: Orígenes permitidos (ej: `http://localhost:5173,http://localhost:80`)
+- `VITE_API_URL`: URL del backend (ej: `http://localhost:3000`)
 
 ---
 
-### 🚀 Ejecución en Desarrollo
+### 🚀 Ejecución en Desarrollo Local (SQLite)
 
-#### Paso 1 — Levantar Backend + Base de Datos (Docker)
-
+#### Paso 1 — Levantar Backend
 ```bash
 cd backend
-docker compose up --build -d
+npm install
+npm start
 ```
 
-Esto levanta tres contenedores:
-- `mysql_inventory` — MySQL 8.0 en el puerto `3306`
-- `redis_inventory` — Redis 7 en el puerto `6379`
-- `nestjs_backend` — API NestJS en el puerto `8080`
-
-Al arrancar, el **Seed automático** crea:
-- Roles: `admin`, `user`
-- Usuario administrador: `admin@email.com` / `admin123`
-- 4 categorías: Electrónica, Hogar, Deportes, Juguetes
-- **30+ productos** con imágenes únicas distribuidos entre las categorías
-
-Verificar que el backend está listo:
-```bash
-docker logs nestjs_backend --tail 20
-```
-Debería verse `🌱 Seed completed!` y `Nest application successfully started`.
-
-#### Paso 2 — Levantar Frontend
-
+#### Paso 2 — Levantar Frontend (nueva terminal)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-El frontend estará disponible en: **[http://localhost:5173](http://localhost:5173)**
+El frontend estará en: **http://localhost:5173**  
+El backend estará en: **http://localhost:3000**  
+Health check: **http://localhost:3000/health**
 
 ---
 
-### 🚀 Ejecución en Producción (Docker Compose)
+### 🚀 Ejecución con Docker Compose (PostgreSQL)
+
+#### Paso 1 — Configurar .env
+Copia el ejemplo y configura:
+```bash
+cp .env.example .env
+# Establece DB_TYPE=postgres
+```
+
+#### Paso 2 — Levantar todos los servicios
+```bash
+docker compose up --build -d
+```
+
+Esto levanta:
+- `db` — PostgreSQL 16-alpine en el puerto `5432`
+- `backend` — API NestJS en el puerto `3000`
+- `frontend` — Frontend React (servido por Nginx) en el puerto `80`
+
+#### Paso 3 — Verificar estado
+```bash
+docker compose ps
+docker compose logs -f
+```
+
+La aplicación estará en:
+- **Frontend**: http://localhost
+- **Backend API**: http://localhost:3000
+- **Health check**: http://localhost:3000/health
+
+---
+
+### 🚀 Ejecución en Producción
 
 #### Paso 1 — Configurar Certificados SSL
 
