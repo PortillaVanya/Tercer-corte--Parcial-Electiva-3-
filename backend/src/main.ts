@@ -17,6 +17,21 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  // ========================================
+  // Endpoint de salud PRIMERO (antes de seguridad)
+  // ========================================
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/health', (req, res) => {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  });
+
+  // ========================================
+  // Helmet (seguridad)
+  // ========================================
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -57,12 +72,19 @@ async function bootstrap() {
     }),
   );
 
+  // ========================================
+  // CORS seguro con .filter(Boolean)
+  // ========================================
+  const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:5175',
+      ];
+
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-    ],
+    origin: corsOrigins,
     credentials: true,
   });
 
