@@ -10,15 +10,10 @@ import { Plus, Pencil, Trash2, Search, Package, Truck, Clock, CheckCircle, XCirc
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
-interface Proveedor {
-  id: number;
-  nombre: string;
-  contacto: string;
-  email: string;
-  telefono: string;
-  direccion: string;
-  notas: string;
-}
+// Import types from store
+type ImportedProveedor = import('../store/proveedorStore').Proveedor;
+type ImportedOrdenCompra = import('../store/proveedorStore').OrdenCompra;
+type ImportedOrdenCompraDetalle = import('../store/proveedorStore').OrdenCompraDetalle;
 
 interface Producto {
   id: number | string;
@@ -33,19 +28,6 @@ interface DetalleOrden {
   precioUnitario: number;
   subtotal?: number;
   producto?: Producto;
-}
-
-interface OrdenCompra {
-  id: number;
-  numeroOrden: string;
-  proveedorId: number;
-  fechaOrden: string;
-  fechaEntregaEsperada?: string;
-  notas?: string;
-  estado: string;
-  total?: number;
-  proveedor?: Proveedor;
-  detalles: DetalleOrden[];
 }
 
 // ✅ Movemos estas funciones fuera del componente principal para que sean accesibles globalmente en el archivo
@@ -71,10 +53,10 @@ const getEstadoIcon = (estado: string) => {
 
 // Componente interno sin errores de ámbito
 const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: { 
-  orden: OrdenCompra; 
+  orden: ImportedOrdenCompra; 
   index: number; 
   onRecibir: (id: number) => void; 
-  onEdit: (orden: OrdenCompra) => void; 
+  onEdit: (orden: ImportedOrdenCompra) => void; 
   onDelete: (id: number) => void; 
 }) => {
   const [showDetails, setShowDetails] = useState(false);
@@ -140,7 +122,7 @@ const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: {
             <div className="mt-4 border-t border-white/10 pt-4">
               <h4 className="text-sm font-medium text-slate-400 mb-3">Productos:</h4>
               <div className="space-y-2">
-                {orden.detalles.map((detalle: DetalleOrden) => (
+                {orden.detalles.map((detalle: ImportedOrdenCompraDetalle) => (
                   <div key={detalle.id} className="flex justify-between items-center text-sm">
                     <span className="text-white">{detalle.producto?.nombre || 'Producto'}</span>
                     <div className="flex gap-4 text-slate-400">
@@ -167,11 +149,10 @@ export const ProveedoresPage = () => {
   const [activeTab, setActiveTab] = useState<'proveedores' | 'ordenes'>('proveedores');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOrdenModalOpen, setIsOrdenModalOpen] = useState(false);
-  const [editingProveedor, setEditingProveedor] = useState<Proveedor | null>(null);
-  const [editingOrden, setEditingOrden] = useState<OrdenCompra | null>(null);
+  const [editingProveedor, setEditingProveedor] = useState<ImportedProveedor | null>(null);
+  const [editingOrden, setEditingOrden] = useState<ImportedOrdenCompra | null>(null);
   
-  const [formData, setFormData] = useState<Proveedor>({ 
-    id: 0,
+  const [formData, setFormData] = useState<Partial<ImportedProveedor>>({ 
     nombre: '', 
     contacto: '', 
     email: '', 
@@ -194,19 +175,19 @@ export const ProveedoresPage = () => {
     fetchProductos();
   }, [fetchProveedores, fetchOrdenesCompra, fetchProductos]);
 
-  const filteredProveedores = proveedores.filter((p: Proveedor) =>
+  const filteredProveedores = proveedores.filter((p: ImportedProveedor) =>
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.contacto.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenModal = (proveedor: Proveedor | null = null) => {
+  const handleOpenModal = (proveedor: ImportedProveedor | null = null) => {
     if (proveedor) {
       setEditingProveedor(proveedor);
       setFormData(proveedor);
     } else {
       setEditingProveedor(null);
-      setFormData({ id: 0, nombre: '', contacto: '', email: '', telefono: '', direccion: '', notas: '' });
+      setFormData({ nombre: '', contacto: '', email: '', telefono: '', direccion: '', notas: '' });
     }
     setIsModalOpen(true);
   };
@@ -263,7 +244,7 @@ export const ProveedoresPage = () => {
     return ordenFormData.detalles.reduce((sum, detalle) => sum + (detalle.cantidad * detalle.precioUnitario), 0);
   };
 
-  const handleOpenOrdenModal = (orden: OrdenCompra | null = null) => {
+  const handleOpenOrdenModal = (orden: ImportedOrdenCompra | null = null) => {
     if (orden) {
       setEditingOrden(orden);
       setOrdenFormData({
@@ -271,7 +252,7 @@ export const ProveedoresPage = () => {
         fechaOrden: new Date(orden.fechaOrden).toISOString().split('T')[0],
         fechaEntregaEsperada: orden.fechaEntregaEsperada ? new Date(orden.fechaEntregaEsperada).toISOString().split('T')[0] : '',
         notas: orden.notas || '',
-        detalles: orden.detalles.map((detalle: DetalleOrden) => ({
+        detalles: (orden.detalles || []).map((detalle: ImportedOrdenCompraDetalle) => ({
           productoId: detalle.productoId,
           cantidad: detalle.cantidad,
           precioUnitario: detalle.precioUnitario
