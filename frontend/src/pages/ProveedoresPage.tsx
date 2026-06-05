@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useProveedorStore } from '../store/proveedorStore';
-import type { Proveedor, OrdenCompra, OrdenCompraDetalle } from '../store/proveedorStore';
+import type { Proveedor, OrdenCompra } from '../store/proveedorStore';
 import { useProductStore } from '../store/productStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
