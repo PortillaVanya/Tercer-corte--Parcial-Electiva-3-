@@ -10,15 +10,47 @@ import { Plus, Pencil, Trash2, Search, Package, Truck, Clock, CheckCircle, XCirc
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
+interface Proveedor {
+  id: number;
+  nombre: string;
+  contacto: string;
+  email: string;
+  telefono: string;
+  direccion: string;
+  notas: string;
+}
+
+interface Producto {
+  id: number | string;
+  nombre: string;
+  precio: number | string;
+}
+
 interface DetalleOrden {
+  id?: number;
   productoId: number;
   cantidad: number;
   precioUnitario: number;
+  subtotal?: number;
+  producto?: Producto;
+}
+
+interface OrdenCompra {
+  id: number;
+  numeroOrden: string;
+  proveedorId: number;
+  fechaOrden: string;
+  fechaEntregaEsperada?: string;
+  notas?: string;
+  estado: string;
+  total?: number;
+  proveedor?: Proveedor;
+  detalles: DetalleOrden[];
 }
 
 // ✅ Movemos estas funciones fuera del componente principal para que sean accesibles globalmente en el archivo
 const getEstadoBadge = (estado: string) => {
-  const variants: Record<string, any> = {
+  const variants: Record<string, string> = {
     'PENDIENTE': 'warning',
     'ENVIADO': 'info',
     'RECIBIDO': 'success',
@@ -28,7 +60,7 @@ const getEstadoBadge = (estado: string) => {
 };
 
 const getEstadoIcon = (estado: string) => {
-  const icons: Record<string, any> = {
+  const icons: Record<string, typeof Clock> = {
     'PENDIENTE': Clock,
     'ENVIADO': Truck,
     'RECIBIDO': CheckCircle,
@@ -38,7 +70,13 @@ const getEstadoIcon = (estado: string) => {
 };
 
 // Componente interno sin errores de ámbito
-const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: { orden: any; index: number; onRecibir: (id: number) => void; onEdit: (orden: any) => void; onDelete: (id: number) => void }) => {
+const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: { 
+  orden: OrdenCompra; 
+  index: number; 
+  onRecibir: (id: number) => void; 
+  onEdit: (orden: OrdenCompra) => void; 
+  onDelete: (id: number) => void; 
+}) => {
   const [showDetails, setShowDetails] = useState(false);
   const EstadoIcon = getEstadoIcon(orden.estado);
 
@@ -102,7 +140,7 @@ const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: { orden: any; 
             <div className="mt-4 border-t border-white/10 pt-4">
               <h4 className="text-sm font-medium text-slate-400 mb-3">Productos:</h4>
               <div className="space-y-2">
-                {orden.detalles.map((detalle: any) => (
+                {orden.detalles.map((detalle: DetalleOrden) => (
                   <div key={detalle.id} className="flex justify-between items-center text-sm">
                     <span className="text-white">{detalle.producto?.nombre || 'Producto'}</span>
                     <div className="flex gap-4 text-slate-400">
@@ -129,10 +167,11 @@ export const ProveedoresPage = () => {
   const [activeTab, setActiveTab] = useState<'proveedores' | 'ordenes'>('proveedores');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOrdenModalOpen, setIsOrdenModalOpen] = useState(false);
-  const [editingProveedor, setEditingProveedor] = useState<any>(null);
-  const [editingOrden, setEditingOrden] = useState<any>(null);
+  const [editingProveedor, setEditingProveedor] = useState<Proveedor | null>(null);
+  const [editingOrden, setEditingOrden] = useState<OrdenCompra | null>(null);
   
-  const [formData, setFormData] = useState({ 
+  const [formData, setFormData] = useState<Proveedor>({ 
+    id: 0,
     nombre: '', 
     contacto: '', 
     email: '', 
@@ -155,19 +194,19 @@ export const ProveedoresPage = () => {
     fetchProductos();
   }, [fetchProveedores, fetchOrdenesCompra, fetchProductos]);
 
-  const filteredProveedores = proveedores.filter(p =>
+  const filteredProveedores = proveedores.filter((p: Proveedor) =>
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.contacto.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenModal = (proveedor: any = null) => {
+  const handleOpenModal = (proveedor: Proveedor | null = null) => {
     if (proveedor) {
       setEditingProveedor(proveedor);
       setFormData(proveedor);
     } else {
       setEditingProveedor(null);
-      setFormData({ nombre: '', contacto: '', email: '', telefono: '', direccion: '', notas: '' });
+      setFormData({ id: 0, nombre: '', contacto: '', email: '', telefono: '', direccion: '', notas: '' });
     }
     setIsModalOpen(true);
   };
@@ -184,7 +223,7 @@ export const ProveedoresPage = () => {
       }
       setIsModalOpen(false);
       fetchProveedores();
-    } catch (error) {
+    } catch {
       toast.error('Error al guardar proveedor');
     }
   };
@@ -195,7 +234,7 @@ export const ProveedoresPage = () => {
         await deleteProveedor(id);
         toast.success('Proveedor eliminado exitosamente');
         fetchProveedores();
-      } catch (error) {
+      } catch {
         toast.error('Error al eliminar proveedor');
       }
     }
@@ -224,7 +263,7 @@ export const ProveedoresPage = () => {
     return ordenFormData.detalles.reduce((sum, detalle) => sum + (detalle.cantidad * detalle.precioUnitario), 0);
   };
 
-  const handleOpenOrdenModal = (orden: any = null) => {
+  const handleOpenOrdenModal = (orden: OrdenCompra | null = null) => {
     if (orden) {
       setEditingOrden(orden);
       setOrdenFormData({
@@ -232,7 +271,7 @@ export const ProveedoresPage = () => {
         fechaOrden: new Date(orden.fechaOrden).toISOString().split('T')[0],
         fechaEntregaEsperada: orden.fechaEntregaEsperada ? new Date(orden.fechaEntregaEsperada).toISOString().split('T')[0] : '',
         notas: orden.notas || '',
-        detalles: orden.detalles.map((detalle: any) => ({
+        detalles: orden.detalles.map((detalle: DetalleOrden) => ({
           productoId: detalle.productoId,
           cantidad: detalle.cantidad,
           precioUnitario: detalle.precioUnitario
@@ -278,7 +317,7 @@ export const ProveedoresPage = () => {
         detalles: []
       });
       fetchOrdenesCompra();
-    } catch (error) {
+    } catch {
       toast.error('Error al guardar orden de compra');
     }
   };
@@ -289,7 +328,7 @@ export const ProveedoresPage = () => {
         await deleteOrdenCompra(id);
         toast.success('Orden de compra eliminada exitosamente');
         fetchOrdenesCompra();
-      } catch (error) {
+      } catch {
         toast.error('Error al eliminar orden de compra');
       }
     }
