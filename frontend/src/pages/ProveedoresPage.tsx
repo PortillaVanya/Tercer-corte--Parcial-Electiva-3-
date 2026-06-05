@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useProveedorStore } from '../store/proveedorStore';
+import { useProveedorStore, Proveedor, OrdenCompra, OrdenCompraDetalle } from '../store/proveedorStore';
 import { useProductStore } from '../store/productStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -9,11 +9,6 @@ import { Badge } from '../components/ui/Badge';
 import { Plus, Pencil, Trash2, Search, Package, Truck, Clock, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-
-// Import types from store
-type ImportedProveedor = import('../store/proveedorStore').Proveedor;
-type ImportedOrdenCompra = import('../store/proveedorStore').OrdenCompra;
-type ImportedOrdenCompraDetalle = import('../store/proveedorStore').OrdenCompraDetalle;
 
 interface Producto {
   id: number | string;
@@ -30,12 +25,12 @@ interface DetalleOrden {
   producto?: Producto;
 }
 
-// ✅ Movemos estas funciones fuera del componente principal para que sean accesibles globalmente en el archivo
-const getEstadoBadge = (estado: string) => {
-  const variants: Record<string, string> = {
-    'PENDIENTE': 'warning',
-    'ENVIADO': 'info',
-    'RECIBIDO': 'success',
+// ✅ Badge con variantes compatibles con el componente real
+const getEstadoBadge = (estado: string): "default" | "secondary" | "destructive" | "outline" => {
+  const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    'PENDIENTE': 'secondary',
+    'ENVIADO': 'secondary',
+    'RECIBIDO': 'default',
     'CANCELADO': 'destructive'
   };
   return variants[estado] || 'default';
@@ -51,13 +46,13 @@ const getEstadoIcon = (estado: string) => {
   return icons[estado] || Package;
 };
 
-// Componente interno sin errores de ámbito
-const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: { 
-  orden: ImportedOrdenCompra; 
-  index: number; 
-  onRecibir: (id: number) => void; 
-  onEdit: (orden: ImportedOrdenCompra) => void; 
-  onDelete: (id: number) => void; 
+// Componente interno para cada orden
+const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: {
+  orden: OrdenCompra;
+  index: number;
+  onRecibir: (id: number) => void;
+  onEdit: (orden: OrdenCompra) => void;
+  onDelete: (id: number) => void;
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const EstadoIcon = getEstadoIcon(orden.estado);
@@ -79,7 +74,7 @@ const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: {
               </div>
               <p className="text-sm text-slate-400">Proveedor: {orden.proveedor?.nombre}</p>
               <p className="text-sm text-slate-400">Fecha: {new Date(orden.fechaOrden).toLocaleDateString()}</p>
-              <p className="text-sm text-slate-400">Total: ${orden.total?.toFixed(2) ?? '0.00'}</p>
+              <p className="text-sm text-slate-400">Total: ${orden.total.toFixed(2)}</p>
               <button
                 onClick={() => setShowDetails(!showDetails)}
                 className="text-sm text-blue-400 hover:text-blue-300 mt-2"
@@ -90,11 +85,7 @@ const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: {
             <div className="flex gap-2">
               {orden.estado !== 'RECIBIDO' && (
                 <>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => onEdit(orden)}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => onEdit(orden)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
@@ -108,10 +99,7 @@ const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: {
                 </>
               )}
               {orden.estado === 'ENVIADO' && (
-                <Button
-                  onClick={() => onRecibir(orden.id)}
-                  className="gap-2"
-                >
+                <Button onClick={() => onRecibir(orden.id)} className="gap-2">
                   <CheckCircle className="h-4 w-4" />
                   Recibir
                 </Button>
@@ -122,13 +110,13 @@ const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: {
             <div className="mt-4 border-t border-white/10 pt-4">
               <h4 className="text-sm font-medium text-slate-400 mb-3">Productos:</h4>
               <div className="space-y-2">
-                {orden.detalles.map((detalle: ImportedOrdenCompraDetalle) => (
+                {orden.detalles.map((detalle) => (
                   <div key={detalle.id} className="flex justify-between items-center text-sm">
                     <span className="text-white">{detalle.producto?.nombre || 'Producto'}</span>
                     <div className="flex gap-4 text-slate-400">
                       <span>Cantidad: {detalle.cantidad}</span>
-                      <span>Precio: ${detalle.precioUnitario?.toFixed(2) ?? '0.00'}</span>
-                      <span>Subtotal: ${detalle.subtotal?.toFixed(2) ?? '0.00'}</span>
+                      <span>Precio: ${detalle.precioUnitario.toFixed(2)}</span>
+                      <span>Subtotal: ${detalle.subtotal.toFixed(2)}</span>
                     </div>
                   </div>
                 ))}
@@ -142,21 +130,34 @@ const OrderItem = ({ orden, index, onRecibir, onEdit, onDelete }: {
 };
 
 export const ProveedoresPage = () => {
-  const { proveedores, ordenesCompra, fetchProveedores, fetchOrdenesCompra, createProveedor, updateProveedor, deleteProveedor, createOrdenCompra, recibirOrdenCompra, updateOrdenCompra, deleteOrdenCompra } = useProveedorStore();
+  const {
+    proveedores,
+    ordenesCompra,
+    fetchProveedores,
+    fetchOrdenesCompra,
+    createProveedor,
+    updateProveedor,
+    deleteProveedor,
+    createOrdenCompra,
+    recibirOrdenCompra,
+    updateOrdenCompra,
+    deleteOrdenCompra
+  } = useProveedorStore();
+
   const { productos, fetchProductos } = useProductStore();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'proveedores' | 'ordenes'>('proveedores');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOrdenModalOpen, setIsOrdenModalOpen] = useState(false);
-  const [editingProveedor, setEditingProveedor] = useState<ImportedProveedor | null>(null);
-  const [editingOrden, setEditingOrden] = useState<ImportedOrdenCompra | null>(null);
-  
-  const [formData, setFormData] = useState<Partial<ImportedProveedor>>({ 
-    nombre: '', 
-    contacto: '', 
-    email: '', 
-    telefono: '', 
+  const [editingProveedor, setEditingProveedor] = useState<Proveedor | null>(null);
+  const [editingOrden, setEditingOrden] = useState<OrdenCompra | null>(null);
+
+  const [formData, setFormData] = useState<Partial<Proveedor>>({
+    nombre: '',
+    contacto: '',
+    email: '',
+    telefono: '',
     direccion: '',
     notas: ''
   });
@@ -175,13 +176,13 @@ export const ProveedoresPage = () => {
     fetchProductos();
   }, [fetchProveedores, fetchOrdenesCompra, fetchProductos]);
 
-  const filteredProveedores = proveedores.filter((p: ImportedProveedor) =>
+  const filteredProveedores = proveedores.filter((p: Proveedor) =>
     p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.contacto.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleOpenModal = (proveedor: ImportedProveedor | null = null) => {
+  const handleOpenModal = (proveedor: Proveedor | null = null) => {
     if (proveedor) {
       setEditingProveedor(proveedor);
       setFormData(proveedor);
@@ -244,7 +245,7 @@ export const ProveedoresPage = () => {
     return ordenFormData.detalles.reduce((sum, detalle) => sum + (detalle.cantidad * detalle.precioUnitario), 0);
   };
 
-  const handleOpenOrdenModal = (orden: ImportedOrdenCompra | null = null) => {
+  const handleOpenOrdenModal = (orden: OrdenCompra | null = null) => {
     if (orden) {
       setEditingOrden(orden);
       setOrdenFormData({
@@ -252,7 +253,7 @@ export const ProveedoresPage = () => {
         fechaOrden: new Date(orden.fechaOrden).toISOString().split('T')[0],
         fechaEntregaEsperada: orden.fechaEntregaEsperada ? new Date(orden.fechaEntregaEsperada).toISOString().split('T')[0] : '',
         notas: orden.notas || '',
-        detalles: (orden.detalles || []).map((detalle: ImportedOrdenCompraDetalle) => ({
+        detalles: (orden.detalles || []).map(detalle => ({
           productoId: detalle.productoId,
           cantidad: detalle.cantidad,
           precioUnitario: detalle.precioUnitario
@@ -465,7 +466,7 @@ export const ProveedoresPage = () => {
           />
           <Input
             label="Notas"
-            value={formData.notas}
+            value={formData.notas || ''}
             onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
           />
           <div className="flex gap-2 justify-end">
@@ -606,7 +607,7 @@ export const ProveedoresPage = () => {
               Cancelar
             </Button>
             <Button type="submit">
-              Crear Orden
+              {editingOrden ? 'Actualizar' : 'Crear Orden'}
             </Button>
           </div>
         </form>

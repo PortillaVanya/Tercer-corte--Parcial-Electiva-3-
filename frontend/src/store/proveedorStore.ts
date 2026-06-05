@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import api from '../api/axios';
 
-interface Proveedor {
+export interface Proveedor {
   id: number;
   nombre: string;
   contacto: string;
@@ -12,7 +12,7 @@ interface Proveedor {
   createdAt: string;
 }
 
-interface OrdenCompra {
+export interface OrdenCompra {
   id: number;
   numeroOrden: string;
   fechaOrden: string;
@@ -26,7 +26,7 @@ interface OrdenCompra {
   detalles?: OrdenCompraDetalle[];
 }
 
-interface OrdenCompraDetalle {
+export interface OrdenCompraDetalle {
   id: number;
   ordenCompraId: number;
   productoId: number;
