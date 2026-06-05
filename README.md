@@ -347,7 +347,7 @@ Los backups se guardan en `/backups` y se mantienen los últimos 7 días automá
 | Campo | Valor |
 |-------|-------|
 | URL | [http://localhost:5173](http://localhost:5173) |
-| Email | `admin@email.com` |
+| Email | `admin@admin.com` |
 | Contraseña | `admin123` |
 
 ---
