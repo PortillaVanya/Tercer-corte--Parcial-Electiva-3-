@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useProveedorStore, Proveedor, OrdenCompra, OrdenCompraDetalle } from '../store/proveedorStore';
+import { useProveedorStore } from '../store/proveedorStore';
+import type { Proveedor, OrdenCompra, OrdenCompraDetalle } from '../store/proveedorStore';
 import { useProductStore } from '../store/productStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -235,7 +236,7 @@ export const ProveedoresPage = () => {
     setOrdenFormData({ ...ordenFormData, detalles: newDetalles });
   };
 
-  const updateDetalle = (index: number, field: keyof DetalleOrden, value: number) => {
+  const updateDetalle = (index: number, field: 'productoId' | 'cantidad' | 'precioUnitario', value: number) => {
     const newDetalles = [...ordenFormData.detalles];
     newDetalles[index][field] = value;
     setOrdenFormData({ ...ordenFormData, detalles: newDetalles });
