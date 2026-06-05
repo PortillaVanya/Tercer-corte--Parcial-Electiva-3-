@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useProductStore } from '../store/productStore';
 import type { Producto } from '../store/productStore';
 import { useCategoryStore } from '../store/categoryStore';
+import type { Categoria } from '../store/categoryStore';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card, CardContent } from '../components/ui/Card';
@@ -130,7 +131,7 @@ export const ProductsPage = () => {
       }));
 
       const headers = ['Nombre', 'Precio', 'Stock', 'Categoría'];
-      const csvData = allProductos.map(p => [
+      const csvData = allProductos.map((p: { nombre: string; precio: number; stock: number; categoriaNombre: string }) => [
         p.nombre,
         p.precio,
         p.stock,
@@ -173,7 +174,7 @@ export const ProductsPage = () => {
       doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 14, 22);
       doc.text(`Total productos: ${allProductos.length}`, 14, 29);
 
-      const tableData = allProductos.map(p => [
+      const tableData = allProductos.map((p: { nombre: string; precio: number; stock: number; categoriaNombre: string }) => [
         p.nombre,
         `$${p.precio}`,
         p.stock,
@@ -204,7 +205,7 @@ export const ProductsPage = () => {
     });
   };
 
-  const filteredProducts = productos.filter((p) => {
+  const filteredProducts = productos.filter((p: Producto) => {
     const matchesSearch = p.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || p.categoriaId === Number(categoryFilter);
     const matchesMinPrice = !advancedFilters.minPrice || p.precio >= Number(advancedFilters.minPrice);
@@ -213,7 +214,7 @@ export const ProductsPage = () => {
     const matchesMaxStock = !advancedFilters.maxStock || p.stock <= Number(advancedFilters.maxStock);
     
     return matchesSearch && matchesCategory && matchesMinPrice && matchesMaxPrice && matchesMinStock && matchesMaxStock;
-  }).sort((a, b) => {
+  }).sort((a: Producto, b: Producto) => {
     const modifier = advancedFilters.sortOrder === 'asc' ? 1 : -1;
     if (advancedFilters.sortBy === 'nombre') {
       return a.nombre.localeCompare(b.nombre) * modifier;
@@ -266,7 +267,7 @@ export const ProductsPage = () => {
           className="h-12 px-4 bg-white/5 border border-white/10 text-white rounded-xl"
         >
           <option value="all">Todas las categorías</option>
-          {categories.map((cat) => (
+          {categories.map((cat: Categoria) => (
             <option key={cat.id} value={cat.id}>{cat.nombre}</option>
           ))}
         </select>
@@ -496,7 +497,7 @@ export const ProductsPage = () => {
                 onChange={(e) => setFormData({ ...formData, categoriaId: Number(e.target.value) })}
                 required
               >
-                {categories.map(cat => (
+                {categories.map((cat: Categoria) => (
                   <option key={cat.id} value={cat.id} className="bg-slate-900">{cat.nombre}</option>
                 ))}
               </select>
