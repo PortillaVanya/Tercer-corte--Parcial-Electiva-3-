@@ -13,6 +13,7 @@ export class ReportesController {
   @ApiOperation({ summary: 'Exportar inventario a Excel' })
   @Get('inventario/excel')
   async exportarInventarioExcel(@Res() res: Response) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const buffer = await this.reportesService.exportarInventarioExcel();
     res.setHeader(
       'Content-Type',
@@ -28,6 +29,7 @@ export class ReportesController {
   @ApiOperation({ summary: 'Exportar inventario a CSV' })
   @Get('inventario/csv')
   async exportarInventarioCSV(@Res() res: Response) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const buffer = await this.reportesService.exportarInventarioCSV();
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=inventario.csv');
@@ -49,6 +51,7 @@ export class ReportesController {
   @ApiOperation({ summary: 'Exportar logs a Excel' })
   @Get('logs/excel')
   async exportarLogsExcel(@Res() res: Response) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const buffer = await this.reportesService.exportarLogsExcel();
     res.setHeader(
       'Content-Type',

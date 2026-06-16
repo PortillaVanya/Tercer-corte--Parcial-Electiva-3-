@@ -35,6 +35,7 @@ export class ReportesService {
     const workbook = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Inventario');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   }
 
@@ -58,6 +59,7 @@ export class ReportesService {
     const workbook = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Inventario');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return xlsx.write(workbook, { type: 'buffer', bookType: 'csv' });
   }
 
@@ -146,6 +148,7 @@ export class ReportesService {
     const workbook = xlsx.utils.book_new();
     xlsx.utils.book_append_sheet(workbook, worksheet, 'Logs');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return xlsx.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   }
 

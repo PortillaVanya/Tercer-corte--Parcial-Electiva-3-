@@ -33,13 +33,13 @@ export class WebsocketsGateway
 
   @SubscribeMessage('join-room')
   handleJoinRoom(client: Socket, room: string) {
-    client.join(room);
+    void client.join(room);
     client.emit('joined-room', room);
   }
 
   @SubscribeMessage('leave-room')
   handleLeaveRoom(client: Socket, room: string) {
-    client.leave(room);
+    void client.leave(room);
     client.emit('left-room', room);
   }
 

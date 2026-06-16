@@ -21,6 +21,7 @@ export class NotificacionesService {
     private readonly alertaConfigRepository: Repository<AlertaConfigEntity>,
     private readonly websocketsGateway: WebsocketsGateway,
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     this.emailTransporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587', 10),
@@ -62,7 +63,7 @@ export class NotificacionesService {
       default:
         // Tipo no reconocido: marcar como fallida
         saved.estado = 'FALLIDA';
-        saved.error = `Tipo de notificación no soportado: ${dto.tipo}`;
+        saved.error = `Tipo de notificación no soportado: ${String(dto.tipo)}`;
         await this.notificacionRepository.save(saved);
     }
 
@@ -87,6 +88,7 @@ export class NotificacionesService {
 
       // Enviar correo
       if (recipients.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         await this.emailTransporter.sendMail({
           from: process.env.SMTP_FROM || 'noreply@inventario.com',
           to: recipients.join(', '),

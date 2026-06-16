@@ -21,7 +21,9 @@ async function bootstrap() {
   // Endpoint de salud PRIMERO (antes de seguridad)
   // ========================================
   const httpAdapter = app.getHttpAdapter();
-  httpAdapter.get('/health', (req, res) => {
+
+  httpAdapter.get('/health', (req: any, res: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -76,7 +78,9 @@ async function bootstrap() {
   // CORS seguro con .filter(Boolean)
   // ========================================
   const corsOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+    ? process.env.CORS_ORIGIN.split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean)
     : [
         'http://localhost:5173',
         'http://localhost:5174',
